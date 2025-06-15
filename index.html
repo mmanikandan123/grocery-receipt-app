@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery Receipt Maker (மளிகை ரசீது)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Grocery Receipt Maker (மளிகை ரசீது)</h1>
+
+        <div class="shop-details">
+            <h2>கடை விவரங்கள் (Shop Details)</h2>
+            <input type="text" id="shopName" placeholder="கடையின் பெயர் (Shop Name)">
+            <input type="text" id="shopAddress" placeholder="முகவரி (Address)">
+            <input type="text" id="shopPhone" placeholder="தொலைபேசி எண் (Phone Number)">
+        </div>
+
+        <div class="controls">
+            <h2>பொருட்களைச் சேர்க்கவும் (Add Items)</h2>
+            <button id="startBtn">🎤 பேசத் தொடங்கு (Start Listening)</button>
+            <p id="status">Press the button and speak...</p>
+        </div>
+
+        <div class="grocery-list">
+            <h2>பொருட்கள் பட்டியல் (Grocery List)</h2>
+            <table id="itemTable">
+                <thead>
+                    <tr>
+                        <th>பொருள் (Item)</th>
+                        <th>அளவு (Quantity)</th>
+                        <th>விலை (Price ₹)</th>
+                        <th>மொத்தம் (Total ₹)</th>
+                        <th>நீக்கு (Delete)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Items will be added here by JavaScript -->
+                </tbody>
+            </table>
+            <h3 id="grandTotal">மொத்தத் தொகை (Grand Total): ₹0.00</h3>
+        </div>
+
+        <button id="printBtn">📄 ரசீதை அச்சிடு / சேமி (Print / Save Receipt)</button>
+
+    </div>
+
+    <!-- This is a hidden area used for printing the final receipt -->
+    <div id="receipt-to-print" class="hidden">
+        <div id="receipt-header"></div>
+        <table id="receipt-table"></table>
+        <h3 id="receipt-total"></h3>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>

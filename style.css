@@ -1,0 +1,155 @@
+body {
+    font-family: 'Noto Sans Tamil', sans-serif; /* Good font for Tamil */
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 800px;
+}
+
+h1, h2, h3 {
+    color: #0056b3;
+    text-align: center;
+}
+
+input[type="text"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#startBtn {
+    background-color: #28a745;
+}
+#startBtn:hover {
+    background-color: #218838;
+}
+
+.controls, .shop-details {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#status {
+    margin-top: 10px;
+    font-style: italic;
+    color: #666;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+td input[type="number"] {
+    width: 80px;
+    padding: 5px;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* In style.css */
+
+/* ... (keep all your existing styles from the top) ... */
+
+#grandTotal {
+    text-align: right;
+    margin-top: 20px;
+    font-size: 1.2em;
+}
+
+/* --- START: REVISED PRINT STYLES --- */
+
+/* By default, the printable receipt area is hidden from the screen */
+#receipt-to-print {
+    display: none;
+}
+
+@media print {
+    /* When printing, hide the main application container */
+    .container {
+        display: none;
+    }
+
+    /* When printing, show the receipt container and style it */
+    #receipt-to-print {
+        display: block;
+        font-family: 'Courier New', Courier, monospace; /* Use a monospaced font for classic receipt look */
+        width: 100%;
+    }
+
+    #receipt-to-print h2, #receipt-to-print p {
+        text-align: center;
+        margin: 4px 0;
+    }
+
+    #receipt-to-print table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    #receipt-to-print th, #receipt-to-print td {
+        border-bottom: 1px dotted #333;
+        padding: 5px;
+        text-align: left;
+    }
+    
+    #receipt-to-print th:nth-child(3), #receipt-to-print td:nth-child(3),
+    #receipt-to-print th:nth-child(4), #receipt-to-print td:nth-child(4) {
+        text-align: right; /* Align prices to the right */
+    }
+
+    #receipt-to-print #receipt-total {
+        text-align: right;
+        margin-top: 15px;
+        font-size: 1.1em;
+        font-weight: bold;
+    }
+}
+/* --- END: REVISED PRINT STYLES --- */
