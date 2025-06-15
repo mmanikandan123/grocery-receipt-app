@@ -8,27 +8,57 @@
 </head>
 <body>
 
-    <div class="container">
+    <div class="app-bar">
         <h1>Grocery Receipt Maker (மளிகை ரசீது)</h1>
+    </div>
+
+    <div class="container">
 
         <div class="shop-details">
             <h2>கடை விவரங்கள் (Shop Details)</h2>
-            <input type="text" id="shopName" placeholder="கடையின் பெயர் (Shop Name)">
-            <input type="text" id="shopAddress" placeholder="முகவரி (Address)">
-            <input type="text" id="shopPhone" placeholder="தொலைபேசி எண் (Phone Number)">
+            <div class="shop-details-grid">
+                <input type="text" id="shopName" placeholder="கடையின் பெயர் (Shop Name)">
+                <input type="text" id="shopAddress" placeholder="முகவரி (Address)">
+                <input type="text" id="shopPhone" placeholder="தொலைபேசி எண் (Phone Number)">
+                <!-- START: MODIFIED Receipt Number Input -->
+                <input type="text" id="receiptNumber" placeholder="ரசீது எண் (Receipt No.)" readonly>
+                <!-- END: MODIFIED Receipt Number Input -->
+            </div>
         </div>
 
         <div class="controls">
             <h2>பொருட்களைச் சேர்க்கவும் (Add Items)</h2>
             <button id="startBtn">🎤 பேசத் தொடங்கு (Start Listening)</button>
-            <p id="status">Press the button and speak...</p>
+            <p id="status">Press the button to start continuous listening...</p>
         </div>
+
+        <div class="manual-entry">
+            <h3>அல்லது தட்டச்சு செய்க (Or Type Manually)</h3>
+            <form id="manualForm">
+                <input type="text" id="manualItemName" placeholder="பொருள் பெயர் (Item Name)" required>
+                <div class="manual-inputs">
+                    <input type="number" step="any" id="manualItemQty" placeholder="அளவு (Qty)" value="1" required>
+                    <select id="manualItemUnit">
+                        <option value="piece">piece</option>
+                        <option value="kg">kg</option>
+                        <option value="gram">gram</option>
+                        <option value="liter">liter</option>
+                        <option value="ml">ml</option>
+                        <option value="dozen">dozen</option>
+                        <option value="packet">packet</option>
+                    </select>
+                </div>
+                <button type="submit">➕ பட்டியலில் சேர் (Add to List)</button>
+            </form>
+        </div>
+
 
         <div class="grocery-list">
             <h2>பொருட்கள் பட்டியல் (Grocery List)</h2>
             <table id="itemTable">
                 <thead>
                     <tr>
+                        <th>S.No.</th>
                         <th>பொருள் (Item)</th>
                         <th>அளவு (Quantity)</th>
                         <th>விலை (Price ₹)</th>
@@ -47,7 +77,6 @@
 
     </div>
 
-    <!-- This is a hidden area used for printing the final receipt -->
     <div id="receipt-to-print" class="hidden">
         <div id="receipt-header"></div>
         <table id="receipt-table"></table>

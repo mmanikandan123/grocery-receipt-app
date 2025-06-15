@@ -1,181 +1,205 @@
-// Check if the browser supports the Web Speech API
-window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+document.addEventListener('DOMContentLoaded', () => {
 
-if (!window.SpeechRecognition) {
-    alert("Sorry, your browser does not support Speech Recognition. Please try Google Chrome.");
-} else {
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!window.SpeechRecognition) {
+        alert("Sorry, your browser does not support Speech Recognition. Please try Google Chrome.");
+        return;
+    }
+
     const recognition = new SpeechRecognition();
-    recognition.lang = 'ta-IN'; // Set language to Tamil (India)
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    recognition.lang = 'ta-IN';
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
+    // DOM Elements
     const startBtn = document.getElementById('startBtn');
     const statusEl = document.getElementById('status');
     const itemTableBody = document.querySelector('#itemTable tbody');
     const grandTotalEl = document.getElementById('grandTotal');
     const printBtn = document.getElementById('printBtn');
-    
-    let groceryItems = []; // Array to store item objects
+    const manualForm = document.getElementById('manualForm');
+    const shopNameEl = document.getElementById('shopName');
+    const shopAddressEl = document.getElementById('shopAddress');
+    const shopPhoneEl = document.getElementById('shopPhone');
+    const receiptNumberEl = document.getElementById('receiptNumber');
+    const manualItemUnitEl = document.getElementById('manualItemUnit');
 
-    startBtn.addEventListener('click', () => {
-        recognition.start();
-        statusEl.textContent = 'கேட்கிறேன்... (Listening...)';
-    });
+    let groceryItems = [];
+    let isListening = false;
+    let finalTranscript = '';
 
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        statusEl.textContent = `You said: ${transcript}. Adding to list...`;
-        parseAndAddItem(transcript);
-    };
+    // --- Core Functions ---
 
-    recognition.onspeechend = () => {
-        recognition.stop();
-        statusEl.textContent = 'Press the button and speak...';
-    };
+    function generateReceiptNumber() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        return `${year}${month}${day}-${hours}${minutes}`;
+    }
 
-    recognition.onerror = (event) => {
-        statusEl.textContent = 'Error occurred in recognition: ' + event.error;
-    };
-
-    function parseAndAddItem(text) {
-        // Simple Tamil number and unit parser
-        const numberMap = {
-            'ஒன்று': 1, 'ஒன்னு': 1, 'ஒரு': 1,
-            'ரெண்டு': 2, 'இரண்டு': 2,
-            'மூணு': 3, 'மூன்று': 3,
-            'நாலு': 4, 'நான்கு': 4,
-            'ஐந்து': 5, 'அஞ்சு': 5,
-            'ஆறு': 6,
-            'ஏழு': 7,
-            'எட்டு': 8,
-            'ஒன்பது': 9,
-            'பத்து': 10,
-            'அரை': 0.5, 'அர': 0.5
-        };
-        const units = ['கிலோ', 'கிராம்', 'லிட்டர்', 'பீஸ்', 'டஜன்', 'പാക്കറ്റ്']; // Add more units if needed
-
-        let words = text.split(' ');
-        let quantity = 1;
-        let unit = 'piece'; // default unit
-        let itemName = [];
-
-        words.forEach(word => {
-            if (numberMap[word]) {
-                quantity = numberMap[word];
-            } else if (!isNaN(parseFloat(word))) { // Check if the word is a number like "1", "2.5"
-                quantity = parseFloat(word);
-            } else if (units.includes(word)) {
-                unit = word;
-            } else {
-                itemName.push(word);
+    function saveState() {
+        const state = {
+            items: groceryItems,
+            shopDetails: {
+                name: shopNameEl.value,
+                address: shopAddressEl.value,
+                phone: shopPhoneEl.value,
+                receiptNo: receiptNumberEl.value,
             }
-        });
+        };
+        localStorage.setItem('groceryReceiptState', JSON.stringify(state));
+    }
 
-        if (itemName.length > 0) {
-            const newItem = {
-                name: itemName.join(' '),
-                quantity: `${quantity} ${unit}`,
-                price: 0,
-                total: 0
-            };
-            groceryItems.push(newItem);
+    function loadState() {
+        const savedState = localStorage.getItem('groceryReceiptState');
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            groceryItems = state.items || [];
+            if (state.shopDetails) {
+                shopNameEl.value = state.shopDetails.name || '';
+                shopAddressEl.value = state.shopDetails.address || '';
+                shopPhoneEl.value = state.shopDetails.phone || '';
+                receiptNumberEl.value = state.shopDetails.receiptNo || generateReceiptNumber();
+            }
             renderList();
         } else {
-            statusEl.textContent = `Could not understand the item name from "${text}"`;
+            receiptNumberEl.value = generateReceiptNumber();
         }
     }
 
+    // --- START: MODIFIED Pricing Logic with 'கிராம்' ---
+    function getPricePlaceholder(quantityString) {
+        const unit = (quantityString.split(' ')[1] || 'piece').toLowerCase();
+        switch (unit) {
+            case 'gram': case 'g': case 'கிராம்':
+                return "Price per 100g";
+            case 'ml': case 'மில்லி':
+                return "Price per 100ml";
+            case 'kg': case 'கிலோ':
+                return "Price per kg";
+            case 'liter': case 'லிட்டர்':
+                return "Price per liter";
+            default:
+                return `Price per ${unit}`;
+        }
+    }
+
+    function calculateItemTotal(item) {
+        const parts = item.quantity.toLowerCase().split(' ');
+        const num = parseFloat(parts[0]) || 1;
+        const unit = parts[1] || 'piece';
+        const price = item.price || 0;
+
+        switch (unit) {
+            case 'gram': case 'g': case 'கிராம்':
+                return (num / 100) * price;
+            case 'ml': case 'மில்லி':
+                return (num / 100) * price;
+            default:
+                return num * price;
+        }
+    }
+    // --- END: MODIFIED Pricing Logic ---
+
+    // --- UI Rendering ---
+
     function renderList() {
-        itemTableBody.innerHTML = ''; // Clear existing table
+        itemTableBody.innerHTML = '';
         let grandTotal = 0;
 
         groceryItems.forEach((item, index) => {
             const row = document.createElement('tr');
-            
-        // --- START: MODIFIED LINE ---
-        // We changed type="number" to type="text" and added inputmode="decimal" for mobile convenience.
-        // We also added size="6" to keep the field small.
-        row.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.quantity}</td>
-            <td><input type="text" inputmode="decimal" size="6" class="price-input" data-index="${index}" value="${item.price > 0 ? item.price : ''}" placeholder="Enter price"></td>
-            <td class="item-total">₹${item.total.toFixed(2)}</td>
-            <td><button class="delete-btn" data-index="${index}">X</button></td>
-        `;
-        // --- END: MODIFIED LINE ---
-
+            const placeholder = getPricePlaceholder(item.quantity);
+            row.innerHTML = `
+                <td data-label="S.No.">${index + 1}</td>
+                <td data-label="பொருள் (Item)">${item.name}</td>
+                <td data-label="அளவு (Quantity)">${item.quantity}</td>
+                <td data-label="விலை (Price ₹)"><input type="text" inputmode="decimal" class="price-input" data-index="${index}" value="${item.price > 0 ? item.price : ''}" placeholder="${placeholder}"></td>
+                <td data-label="மொத்தம் (Total ₹)" class="item-total">₹${item.total.toFixed(2)}</td>
+                <td data-label="நீக்கு (Delete)"><button class="delete-btn" data-index="${index}">X</button></td>
+            `;
             itemTableBody.appendChild(row);
             grandTotal += item.total;
         });
 
         grandTotalEl.textContent = `மொத்தத் தொகை (Grand Total): ₹${grandTotal.toFixed(2)}`;
         addEventListenersToInputs();
+        saveState();
     }
 
-// In script.js
+    // --- Event Listeners ---
 
-function addEventListenersToInputs() {
-    // --- START: MODIFIED CODE ---
-    document.querySelectorAll('.price-input').forEach(input => {
-        input.addEventListener('input', (e) => {
-            // This line ensures only numbers and a single decimal point can be entered
-            e.target.value = e.target.value.replace(/[^0-9.]/g, '');
-
-            const index = e.target.dataset.index;
-            const price = parseFloat(e.target.value) || 0; // Use the cleaned value
-            groceryItems[index].price = price;
-            
-            // Extract the number from the quantity string e.g., "2 கிலோ" -> 2
-            const quantityNum = parseFloat(groceryItems[index].quantity) || 1;
-            groceryItems[index].total = price * quantityNum;
-            
-            // Re-render the list to update totals
-            renderList();
-
-            // After re-rendering, focus back on the input the user was editing
-            const newInputs = document.querySelectorAll('.price-input');
-            const targetInput = Array.from(newInputs).find(i => i.dataset.index === index);
-            if (targetInput) {
-                targetInput.focus();
-                // Move cursor to the end
-                targetInput.setSelectionRange(targetInput.value.length, targetInput.value.length);
-            }
+    function addEventListenersToInputs() {
+        document.querySelectorAll('.price-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');
+                const index = e.target.dataset.index;
+                const price = parseFloat(e.target.value) || 0;
+                const item = groceryItems[index];
+                item.price = price;
+                item.total = calculateItemTotal(item);
+                renderList();
+                const newInputs = document.querySelectorAll('.price-input');
+                const targetInput = Array.from(newInputs).find(i => i.dataset.index === index);
+                if (targetInput) {
+                    targetInput.focus();
+                    targetInput.setSelectionRange(targetInput.value.length, targetInput.value.length);
+                }
+            });
         });
-    });
-    // --- END: MODIFIED CODE ---
 
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const index = e.target.dataset.index;
-            groceryItems.splice(index, 1); // Remove item from array
-            renderList();
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const index = e.target.dataset.index;
+                groceryItems.splice(index, 1);
+                renderList();
+            });
         });
-    });
-}
 
+        [shopNameEl, shopAddressEl, shopPhoneEl].forEach(el => {
+            el.addEventListener('input', saveState);
+        });
+    }
+    
+    // --- Unchanged parsing and form submission logic ---
+    manualForm.addEventListener('submit', (e) => { e.preventDefault(); const itemName = document.getElementById('manualItemName').value.trim(); const quantity = document.getElementById('manualItemQty').value; const unit = manualItemUnitEl.value; if (itemName) { const newItem = { name: itemName, quantity: `${quantity} ${unit}`, price: 0, total: 0 }; groceryItems.push(newItem); renderList(); manualForm.reset(); manualItemUnitEl.value = 'piece'; } });
+    function parseAndAddItem(text) { const numberMap = { 'ஒன்று': 1, 'ஒன்னு': 1, 'ஒரு': 1, 'ரெண்டு': 2, 'இரண்டு': 2, 'மூணு': 3, 'மூன்று': 3, 'நாலு': 4, 'நான்கு': 4, 'ஐந்து': 5, 'அஞ்சு': 5, 'ஆறு': 6, 'ஏழு': 7, 'எட்டு': 8, 'ஒன்பது': 9, 'பத்து': 10, 'அரை': 0.5, 'அர': 0.5 }; const units = ['கிலோ', 'கிராம்', 'லிட்டர்', 'மில்லி', 'பீஸ்', 'டஜன்', 'പാക്കറ്റ്', 'kg', 'g', 'l', 'ml']; let words = text.split(' '); let quantity = 1; let unit = 'piece'; let itemName = []; words.forEach(word => { word = word.toLowerCase(); if (numberMap[word]) { quantity = numberMap[word]; } else if (!isNaN(parseFloat(word))) { quantity = parseFloat(word); } else if (units.includes(word)) { unit = word; } else { itemName.push(word); } }); if (itemName.length === 0 && text.trim().length > 0) { itemName.push(text.trim()); } if (itemName.length > 0) { const newItem = { name: itemName.join(' '), quantity: `${quantity} ${unit}`, price: 0, total: 0 }; groceryItems.push(newItem); renderList(); } }
+    startBtn.addEventListener('click', () => { if (isListening) { recognition.stop(); } else { recognition.start(); } });
+    recognition.onstart = () => { isListening = true; startBtn.textContent = '🛑 நிறுத்த (Stop Listening)'; startBtn.classList.add('listening'); statusEl.textContent = 'கேட்கிறேன்... (Listening...)'; };
+    recognition.onend = () => { isListening = false; startBtn.textContent = '🎤 பேசத் தொடங்கு (Start Listening)'; startBtn.classList.remove('listening'); statusEl.textContent = 'Press the button to start continuous listening...'; finalTranscript = ''; };
+    recognition.onresult = (event) => { let interimTranscript = ''; for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) { finalTranscript += event.results[i][0].transcript; } else { interimTranscript += event.results[i][0].transcript; } } statusEl.textContent = interimTranscript || '...'; if (finalTranscript) { statusEl.textContent = `சேர்க்கப்பட்டது (Added): ${finalTranscript}. சொல்லுங்கள்... (Say next item...)`; parseAndAddItem(finalTranscript); finalTranscript = ''; } };
+    recognition.onerror = (event) => { statusEl.textContent = 'Error occurred in recognition: ' + event.error; isListening = false; };
+    
+    // --- START: MODIFIED Print Button Logic ---
     printBtn.addEventListener('click', () => {
-        const shopName = document.getElementById('shopName').value;
-        const shopAddress = document.getElementById('shopAddress').value;
-        const shopPhone = document.getElementById('shopPhone').value;
+        // Prevent printing if the list is empty
+        if (groceryItems.length === 0) {
+            alert("The grocery list is empty. Please add items before printing.");
+            return;
+        }
 
-        // Populate the hidden receipt div
         const receiptHeader = document.getElementById('receipt-header');
         receiptHeader.innerHTML = `
-            <h2>${shopName || 'Your Shop'}</h2>
-            <p>${shopAddress || 'Your Address'}</p>
-            <p>${shopPhone || 'Your Phone'}</p>
-            <p>Date: ${new Date().toLocaleDateString()}</p>
+            <h2>${shopNameEl.value || 'Your Shop'}</h2>
+            <p>${shopAddressEl.value || 'Your Address'}</p>
+            <p>${shopPhoneEl.value || 'Your Phone'}</p>
+            <p>Date: ${new Date().toLocaleDateString('en-IN')} | Receipt No: ${receiptNumberEl.value}</p>
             <hr>
         `;
         
         const receiptTable = document.getElementById('receipt-table');
         receiptTable.innerHTML = `
             <thead>
-                <tr><th>Item</th><th>Quantity</th><th>Price (₹)</th><th>Total (₹)</th></tr>
+                <tr><th>S.No.</th><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr>
             </thead>
             <tbody>
-                ${groceryItems.map(item => `
+                ${groceryItems.map((item, index) => `
                     <tr>
+                        <td>${index + 1}</td>
                         <td>${item.name}</td>
                         <td>${item.quantity}</td>
                         <td>${item.price.toFixed(2)}</td>
@@ -186,8 +210,20 @@ function addEventListenersToInputs() {
         `;
         
         document.getElementById('receipt-total').innerHTML = grandTotalEl.innerHTML;
-
-        // Trigger the browser's print dialog
+        
         window.print();
+
+        // Use a timeout to allow the print dialog to appear before showing the confirm dialog
+        setTimeout(() => {
+            if (confirm("Do you want to clear the list for a new receipt?")) {
+                groceryItems = []; // Clear the items array
+                receiptNumberEl.value = generateReceiptNumber(); // Generate a new receipt number
+                renderList(); // Re-render the empty list and save the new state
+            }
+        }, 1000); // 1-second delay
     });
-}
+    // --- END: MODIFIED Print Button Logic ---
+
+    // Initial load
+    loadState();
+});

@@ -4,34 +4,56 @@ body {
     background-color: #f4f4f9;
     color: #333;
     margin: 0;
-    padding: 10px; /* Add some padding for small screens */
+    padding: 0;
     -webkit-font-smoothing: antialiased;
+}
+
+/* App Bar Styles */
+.app-bar {
+    background-color: #0056b3;
+    color: white;
+    padding: 12px 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    width: 100%;
+    box-sizing: border-box;
+}
+.app-bar h1 {
+    margin: 0;
+    font-size: 1.3em;
+    text-align: left;
+    color: white;
 }
 
 .container {
     background-color: #fff;
     padding: 25px;
+    margin: 15px auto;
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
     width: 100%;
     max-width: 800px;
-    margin: 0 auto; /* Center the container */
-    box-sizing: border-box; /* Ensures padding is included in the width */
+    box-sizing: border-box;
 }
 
-h1, h2, h3 {
+h2, h3 {
     color: #0056b3;
     text-align: center;
 }
 
 /* Input and Button Styles */
-input[type="text"], input[type="number"] {
-    width: 100%; /* Make inputs full width */
+input[type="text"], input[type="number"], select {
+    width: 100%;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    background-color: white;
+    font-size: 16px;
+}
+input[readonly] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
 }
 
 button {
@@ -43,196 +65,107 @@ button {
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
-    width: 100%; /* Make buttons full width for easy tapping */
+    width: 100%;
     margin-top: 10px;
 }
-
-button:hover {
-    background-color: #0056b3;
-}
-
-#startBtn {
-    background-color: #28a745;
-}
-#startBtn:hover {
-    background-color: #218838;
-}
+button:hover { background-color: #0056b3; }
+#startBtn { background-color: #28a745; }
+#startBtn:hover { background-color: #218838; }
+#startBtn.listening { background-color: #dc3545; }
+#startBtn.listening:hover { background-color: #c82333; }
 
 /* Layout Sections */
-.controls, .shop-details {
-    text-align: center;
-    margin-bottom: 20px;
+.controls { text-align: center; margin-bottom: 20px; }
+#status { margin-top: 10px; font-style: italic; color: #666; min-height: 1.2em; }
+
+.shop-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.shop-details-grid input:nth-child(1),
+.shop-details-grid input:nth-child(2) {
+    grid-column: 1 / -1;
 }
 
-#status {
-    margin-top: 10px;
-    font-style: italic;
-    color: #666;
-}
+.manual-entry { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; }
+.manual-entry h3 { margin-top: 0; }
+.manual-inputs { display: flex; gap: 10px; }
+.manual-inputs input[type="number"] { flex: 2; }
+.manual-inputs select { flex: 3; }
+.manual-entry button { background-color: #17a2b8; }
+.manual-entry button:hover { background-color: #138496; }
 
-/* Table Styles - Default for Desktop */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
+/* Table Styles */
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+th { background-color: #f2f2f2; }
+th:first-child, td:first-child { width: 50px; text-align: center; }
+td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
+.delete-btn { background-color: #dc3545; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 4px; width: auto; }
+#grandTotal { text-align: right; margin-top: 20px; font-size: 1.2em; }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-th {
-    background-color: #f2f2f2;
-}
-
-td input[type="text"] {
-    padding: 5px;
-    width: 80px; /* Default width for desktop */
-}
-
-.delete-btn {
-    background-color: #dc3545;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    width: auto; /* Override full-width button style */
-}
-
-#grandTotal {
-    text-align: right;
-    margin-top: 20px;
-    font-size: 1.2em;
-}
-
-/* ---------------------------------------------------- */
-/* --- START: RESPONSIVE STYLES for Mobile & Tablet --- */
-/* ---------------------------------------------------- */
-
-/* This code applies only when the screen width is 768px or less */
+/* Responsive Styles */
 @media screen and (max-width: 768px) {
-    body {
-        padding: 5px; /* Less padding on smaller screens */
-    }
-
-    .container {
-        padding: 15px;
-    }
-
-    h1 {
-        font-size: 1.5em; /* Smaller title */
-    }
-
-    /* Hide the original table header */
-    table thead {
-        display: none;
-    }
-
-    /* Make each row a block-level element (a card) */
-    table, tbody, tr {
-        display: block;
-        width: 100%;
-    }
+    body { padding: 0; }
+    .app-bar { padding: 10px 15px; }
+    .app-bar h1 { text-align: center; }
+    .container { padding: 15px; margin: 10px; width: auto; }
+    .shop-details-grid { grid-template-columns: 1fr; }
+    .shop-details-grid input { grid-column: auto; }
+    table thead { display: none; }
+    table, tbody, tr { display: block; width: 100%; }
+    tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-sizing: border-box; }
     
-    tr {
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 10px;
-        box-sizing: border-box;
-    }
-
-    /* Make each cell a block and add space for a label */
+    /* --- START: ALIGNMENT FIX --- */
+    /* Use Flexbox for perfect vertical and horizontal alignment */
     td {
-        display: block;
-        text-align: right; /* Align data to the right */
-        padding-left: 50%; /* Make space for the label on the left */
-        position: relative;
+        display: flex;
+        align-items: center; /* This is the key for vertical alignment */
+        justify-content: space-between; /* Pushes label left and value right */
+        padding: 12px 10px;
         border: none;
         border-bottom: 1px dotted #ccc;
-        padding-top: 8px;
-        padding-bottom: 8px;
     }
+    
+    td:last-child { border-bottom: none; }
 
-    td:last-child {
-        border-bottom: none; /* No line under the last item (delete button) */
-    }
-
-    /* Use ::before pseudo-element to create and position the labels */
+    /* The label is now a flex item, not an absolutely positioned element */
     td::before {
-        content: attr(data-label); /* We will define data-label content below */
-        position: absolute;
-        left: 10px;
-        width: 45%;
-        padding-right: 10px;
+        content: attr(data-label);
         font-weight: bold;
         text-align: left;
+        flex-basis: 50%; /* Give the label a consistent width */
+        padding-right: 10px; /* Space between label and value */
     }
+    /* --- END: ALIGNMENT FIX --- */
 
-    /* Assign the label text for each column */
-    td:nth-of-type(1)::before { content: "பொருள் (Item)"; }
-    td:nth-of-type(2)::before { content: "அளவு (Quantity)"; }
-    td:nth-of-type(3)::before { content: "விலை (Price ₹)"; }
-    td:nth-of-type(4)::before { content: "மொத்தம் (Total ₹)"; }
-    td:nth-of-type(5)::before { content: "நீக்கு (Delete)"; }
+    td:nth-of-type(1)::before { content: "S.No."; }
+    td:nth-of-type(2)::before { content: "பொருள் (Item)"; }
+    td:nth-of-type(3)::before { content: "அளவு (Quantity)"; }
+    td:nth-of-type(4)::before { content: "விலை (Price ₹)"; }
+    td:nth-of-type(5)::before { content: "மொத்தம் (Total ₹)"; }
+    td:nth-of-type(6)::before { content: "நீக்கு (Delete)"; }
 
-    /* Adjust the price input and delete button for the card layout */
-    td input[type="text"] {
-        width: 100%; /* Make input fill the available space */
+    /* Right-align the content within the non-label part of the flexbox */
+    td > *, td .item-total {
+       text-align: right;
+       flex-grow: 1;
     }
-
-    .delete-btn {
-        width: 60px; /* A fixed width for the delete button */
-    }
-
-    #grandTotal {
-        text-align: center; /* Center the grand total */
-        font-size: 1.3em;
-    }
+    
+    .delete-btn { width: 60px; flex-grow: 0; /* Prevent delete button from growing */ }
+    #grandTotal { text-align: center; font-size: 1.3em; }
 }
 
-
-/* ----------------------------------- */
-/* --- PRINT STYLES (No changes needed here) --- */
-/* ----------------------------------- */
-#receipt-to-print {
-    display: none;
-}
-
+/* Print Styles */
+#receipt-to-print { display: none; }
 @media print {
-    .container {
-        display: none;
-    }
-    #receipt-to-print {
-        display: block;
-        font-family: 'Courier New', Courier, monospace;
-        width: 100%;
-    }
-    #receipt-to-print h2, #receipt-to-print p {
-        text-align: center;
-        margin: 4px 0;
-    }
-    #receipt-to-print table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-    }
-    #receipt-to-print th, #receipt-to-print td {
-        border-bottom: 1px dotted #333;
-        padding: 5px;
-        text-align: left;
-    }
-    #receipt-to-print th:nth-child(3), #receipt-to-print td:nth-child(3),
-    #receipt-to-print th:nth-child(4), #receipt-to-print td:nth-child(4) {
-        text-align: right;
-    }
-    #receipt-to-print #receipt-total {
-        text-align: right;
-        margin-top: 15px;
-        font-size: 1.1em;
-        font-weight: bold;
-    }
+    body > .app-bar, body > .container { display: none; }
+    #receipt-to-print { display: block; font-family: 'Courier New', Courier, monospace; width: 100%; }
+    #receipt-to-print h2, #receipt-to-print p { text-align: center; margin: 4px 0; }
+    #receipt-to-print table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    #receipt-to-print th, #receipt-to-print td { border-bottom: 1px dotted #333; padding: 5px; text-align: left; }
+    #receipt-to-print th:last-child, #receipt-to-print td:last-child,
+    #receipt-to-print th:nth-last-child(2), #receipt-to-print td:nth-last-child(2) { text-align: right; }
+    #receipt-to-print #receipt-total { text-align: right; margin-top: 15px; font-size: 1.1em; font-weight: bold; }
 }
