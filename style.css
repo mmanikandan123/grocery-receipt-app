@@ -1,22 +1,35 @@
 /* General Body and Font Styles */
 body {
     font-family: 'Noto Sans Tamil', sans-serif;
-    background-color: #f4f4f9;
     color: #333;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
+    background-image: url('https://www.transparenttextures.com/patterns/food.png');
+    background-repeat: repeat;
+    background-color: #f4f4f9;
 }
 
 /* App Bar Styles */
 .app-bar {
     background-color: #0056b3;
     color: white;
-    padding: 12px 25px;
+    padding: 10px 25px; /* Adjusted padding slightly */
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     width: 100%;
     box-sizing: border-box;
 }
+/* --- START: NEW App Bar Content and Logo Styles --- */
+.app-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Space between logo and title */
+}
+.brand-logo {
+    width: 32px;
+    height: 32px;
+}
+/* --- END: NEW App Bar Content and Logo Styles --- */
 .app-bar h1 {
     margin: 0;
     font-size: 1.3em;
@@ -25,11 +38,11 @@ body {
 }
 
 .container {
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.97);
     padding: 25px;
     margin: 15px auto;
     border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
     width: 100%;
     max-width: 800px;
     box-sizing: border-box;
@@ -42,31 +55,12 @@ h2, h3 {
 
 /* Input and Button Styles */
 input[type="text"], input[type="number"], select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    background-color: white;
-    font-size: 16px;
+    width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background-color: white; font-size: 16px;
 }
-input[readonly] {
-    background-color: #e9ecef;
-    cursor: not-allowed;
-}
+input[readonly] { background-color: #e9ecef; cursor: not-allowed; }
 
 button {
-    background-color: #007bff;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-    width: 100%;
-    margin-top: 10px;
+    background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; width: 100%; margin-top: 10px;
 }
 button:hover { background-color: #0056b3; }
 #startBtn { background-color: #28a745; }
@@ -77,17 +71,8 @@ button:hover { background-color: #0056b3; }
 /* Layout Sections */
 .controls { text-align: center; margin-bottom: 20px; }
 #status { margin-top: 10px; font-style: italic; color: #666; min-height: 1.2em; }
-
-.shop-details-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-.shop-details-grid input:nth-child(1),
-.shop-details-grid input:nth-child(2) {
-    grid-column: 1 / -1;
-}
-
+.shop-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shop-details-grid input:nth-child(1), .shop-details-grid input:nth-child(2) { grid-column: 1 / -1; }
 .manual-entry { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; }
 .manual-entry h3 { margin-top: 0; }
 .manual-inputs { display: flex; gap: 10px; }
@@ -109,7 +94,8 @@ td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
 @media screen and (max-width: 768px) {
     body { padding: 0; }
     .app-bar { padding: 10px 15px; }
-    .app-bar h1 { text-align: center; }
+    .app-bar-content { justify-content: center; } /* Center logo and title container */
+    .app-bar h1 { font-size: 1.2em; }
     .container { padding: 15px; margin: 10px; width: auto; }
     .shop-details-grid { grid-template-columns: 1fr; }
     .shop-details-grid input { grid-column: auto; }
@@ -117,43 +103,17 @@ td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
     table, tbody, tr { display: block; width: 100%; }
     tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-sizing: border-box; }
     
-    /* --- START: ALIGNMENT FIX --- */
-    /* Use Flexbox for perfect vertical and horizontal alignment */
-    td {
-        display: flex;
-        align-items: center; /* This is the key for vertical alignment */
-        justify-content: space-between; /* Pushes label left and value right */
-        padding: 12px 10px;
-        border: none;
-        border-bottom: 1px dotted #ccc;
-    }
-    
+    td { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px; border: none; border-bottom: 1px dotted #ccc; }
     td:last-child { border-bottom: none; }
-
-    /* The label is now a flex item, not an absolutely positioned element */
-    td::before {
-        content: attr(data-label);
-        font-weight: bold;
-        text-align: left;
-        flex-basis: 50%; /* Give the label a consistent width */
-        padding-right: 10px; /* Space between label and value */
-    }
-    /* --- END: ALIGNMENT FIX --- */
-
+    td::before { content: attr(data-label); font-weight: bold; text-align: left; flex-basis: 50%; padding-right: 10px; }
     td:nth-of-type(1)::before { content: "S.No."; }
     td:nth-of-type(2)::before { content: "பொருள் (Item)"; }
     td:nth-of-type(3)::before { content: "அளவு (Quantity)"; }
     td:nth-of-type(4)::before { content: "விலை (Price ₹)"; }
     td:nth-of-type(5)::before { content: "மொத்தம் (Total ₹)"; }
     td:nth-of-type(6)::before { content: "நீக்கு (Delete)"; }
-
-    /* Right-align the content within the non-label part of the flexbox */
-    td > *, td .item-total {
-       text-align: right;
-       flex-grow: 1;
-    }
-    
-    .delete-btn { width: 60px; flex-grow: 0; /* Prevent delete button from growing */ }
+    td > *, td .item-total { text-align: right; flex-grow: 1; }
+    .delete-btn { width: 60px; flex-grow: 0; }
     #grandTotal { text-align: center; font-size: 1.3em; }
 }
 
@@ -162,10 +122,22 @@ td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
 @media print {
     body > .app-bar, body > .container { display: none; }
     #receipt-to-print { display: block; font-family: 'Courier New', Courier, monospace; width: 100%; }
+    
+    /* --- START: NEW Print Logo Styles --- */
+    #receipt-logo-container {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    #receipt-logo-container svg {
+        width: 50px;
+        height: 50px;
+        fill: #000; /* Ensure logo is black for printing */
+    }
+    /* --- END: NEW Print Logo Styles --- */
+
     #receipt-to-print h2, #receipt-to-print p { text-align: center; margin: 4px 0; }
     #receipt-to-print table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     #receipt-to-print th, #receipt-to-print td { border-bottom: 1px dotted #333; padding: 5px; text-align: left; }
-    #receipt-to-print th:last-child, #receipt-to-print td:last-child,
-    #receipt-to-print th:nth-last-child(2), #receipt-to-print td:nth-last-child(2) { text-align: right; }
+    #receipt-to-print th:last-child, #receipt-to-print td:last-child, #receipt-to-print th:nth-last-child(2), #receipt-to-print td:nth-last-child(2) { text-align: right; }
     #receipt-to-print #receipt-total { text-align: right; margin-top: 15px; font-size: 1.1em; font-weight: bold; }
 }
