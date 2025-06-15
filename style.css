@@ -1,11 +1,11 @@
+/* General Body and Font Styles */
 body {
-    font-family: 'Noto Sans Tamil', sans-serif; /* Good font for Tamil */
+    font-family: 'Noto Sans Tamil', sans-serif;
     background-color: #f4f4f9;
     color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+    margin: 0;
+    padding: 10px; /* Add some padding for small screens */
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
@@ -15,6 +15,8 @@ body {
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
     width: 100%;
     max-width: 800px;
+    margin: 0 auto; /* Center the container */
+    box-sizing: border-box; /* Ensures padding is included in the width */
 }
 
 h1, h2, h3 {
@@ -22,12 +24,14 @@ h1, h2, h3 {
     text-align: center;
 }
 
-input[type="text"] {
-    width: calc(100% - 20px);
+/* Input and Button Styles */
+input[type="text"], input[type="number"] {
+    width: 100%; /* Make inputs full width */
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-sizing: border-box;
 }
 
 button {
@@ -39,6 +43,8 @@ button {
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
+    width: 100%; /* Make buttons full width for easy tapping */
+    margin-top: 10px;
 }
 
 button:hover {
@@ -52,6 +58,7 @@ button:hover {
     background-color: #218838;
 }
 
+/* Layout Sections */
 .controls, .shop-details {
     text-align: center;
     margin-bottom: 20px;
@@ -63,6 +70,7 @@ button:hover {
     color: #666;
 }
 
+/* Table Styles - Default for Desktop */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -79,9 +87,9 @@ th {
     background-color: #f2f2f2;
 }
 
-td input[type="number"] {
-    width: 80px;
+td input[type="text"] {
     padding: 5px;
+    width: 80px; /* Default width for desktop */
 }
 
 .delete-btn {
@@ -91,11 +99,8 @@ td input[type="number"] {
     border: none;
     cursor: pointer;
     border-radius: 4px;
+    width: auto; /* Override full-width button style */
 }
-
-/* In style.css */
-
-/* ... (keep all your existing styles from the top) ... */
 
 #grandTotal {
     text-align: right;
@@ -103,48 +108,127 @@ td input[type="number"] {
     font-size: 1.2em;
 }
 
-/* --- START: REVISED PRINT STYLES --- */
+/* ---------------------------------------------------- */
+/* --- START: RESPONSIVE STYLES for Mobile & Tablet --- */
+/* ---------------------------------------------------- */
 
-/* By default, the printable receipt area is hidden from the screen */
+/* This code applies only when the screen width is 768px or less */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 5px; /* Less padding on smaller screens */
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.5em; /* Smaller title */
+    }
+
+    /* Hide the original table header */
+    table thead {
+        display: none;
+    }
+
+    /* Make each row a block-level element (a card) */
+    table, tbody, tr {
+        display: block;
+        width: 100%;
+    }
+    
+    tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    /* Make each cell a block and add space for a label */
+    td {
+        display: block;
+        text-align: right; /* Align data to the right */
+        padding-left: 50%; /* Make space for the label on the left */
+        position: relative;
+        border: none;
+        border-bottom: 1px dotted #ccc;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    td:last-child {
+        border-bottom: none; /* No line under the last item (delete button) */
+    }
+
+    /* Use ::before pseudo-element to create and position the labels */
+    td::before {
+        content: attr(data-label); /* We will define data-label content below */
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        font-weight: bold;
+        text-align: left;
+    }
+
+    /* Assign the label text for each column */
+    td:nth-of-type(1)::before { content: "பொருள் (Item)"; }
+    td:nth-of-type(2)::before { content: "அளவு (Quantity)"; }
+    td:nth-of-type(3)::before { content: "விலை (Price ₹)"; }
+    td:nth-of-type(4)::before { content: "மொத்தம் (Total ₹)"; }
+    td:nth-of-type(5)::before { content: "நீக்கு (Delete)"; }
+
+    /* Adjust the price input and delete button for the card layout */
+    td input[type="text"] {
+        width: 100%; /* Make input fill the available space */
+    }
+
+    .delete-btn {
+        width: 60px; /* A fixed width for the delete button */
+    }
+
+    #grandTotal {
+        text-align: center; /* Center the grand total */
+        font-size: 1.3em;
+    }
+}
+
+
+/* ----------------------------------- */
+/* --- PRINT STYLES (No changes needed here) --- */
+/* ----------------------------------- */
 #receipt-to-print {
     display: none;
 }
 
 @media print {
-    /* When printing, hide the main application container */
     .container {
         display: none;
     }
-
-    /* When printing, show the receipt container and style it */
     #receipt-to-print {
         display: block;
-        font-family: 'Courier New', Courier, monospace; /* Use a monospaced font for classic receipt look */
+        font-family: 'Courier New', Courier, monospace;
         width: 100%;
     }
-
     #receipt-to-print h2, #receipt-to-print p {
         text-align: center;
         margin: 4px 0;
     }
-
     #receipt-to-print table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 15px;
     }
-
     #receipt-to-print th, #receipt-to-print td {
         border-bottom: 1px dotted #333;
         padding: 5px;
         text-align: left;
     }
-    
     #receipt-to-print th:nth-child(3), #receipt-to-print td:nth-child(3),
     #receipt-to-print th:nth-child(4), #receipt-to-print td:nth-child(4) {
-        text-align: right; /* Align prices to the right */
+        text-align: right;
     }
-
     #receipt-to-print #receipt-total {
         text-align: right;
         margin-top: 15px;
@@ -152,4 +236,3 @@ td input[type="number"] {
         font-weight: bold;
     }
 }
-/* --- END: REVISED PRINT STYLES --- */
