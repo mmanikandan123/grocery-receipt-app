@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     recognition.lang = 'ta-IN';
     recognition.continuous = true;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
 
     // DOM Elements
     const startBtn = document.getElementById('startBtn');
@@ -26,80 +27,82 @@ document.addEventListener('DOMContentLoaded', () => {
     const manualItemUnitEl = document.getElementById('manualItemUnit');
 
     let groceryItems = [];
-    // This flag now represents the USER'S INTENT to listen.
     let isListening = false;
-    let finalTranscript = '';
+    // This variable is the key to the new logic. It remembers what we just added.
+    let lastProcessedTranscript = '';
 
-    // --- START: NEW HYBRID EVENT HANDLERS FOR CONTINUOUS BEHAVIOR ---
+    // --- START: THE DEFINITIVE SPEECH RECOGNITION LOGIC ---
 
-    // The user clicks the button.
     startBtn.addEventListener('click', () => {
         if (isListening) {
-            // User wants to stop. Set intent to false FIRST.
             isListening = false;
             recognition.stop();
         } else {
-            // User wants to start. Set intent to true.
             isListening = true;
+            lastProcessedTranscript = ''; // Reset on new session start
             recognition.start();
         }
     });
 
-    // Fires when recognition service starts.
     recognition.onstart = () => {
         startBtn.textContent = '🛑 நிறுத்த (Stop Listening)';
         startBtn.classList.add('listening');
         statusEl.textContent = 'கேட்கிறேன்... (Listening...)';
     };
 
-    // Fires as words are recognized. Its only job is to gather the transcript.
+    // This is the only event we need for processing items.
     recognition.onresult = (event) => {
         let interimTranscript = '';
-        finalTranscript = ''; // Reset to get the latest full sentence
+        let finalTranscript = '';
+
+        // We loop through the results to find the final one for this event
         for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript;
+                finalTranscript += transcript;
             } else {
-                interimTranscript += event.results[i][0].transcript;
+                interimTranscript += transcript;
             }
         }
-        statusEl.textContent = interimTranscript || (finalTranscript + '...') || 'Listening...';
-    };
 
-    // Fires when the user pauses. We process the item here.
-    recognition.onspeechend = () => {
-        if (finalTranscript.trim()) {
-            parseAndAddItem(finalTranscript);
-            statusEl.textContent = `சேர்க்கப்பட்டது (Added): ${finalTranscript}. Waiting for next item...`;
+        // Update the status with live feedback for the user
+        if (interimTranscript) {
+            statusEl.textContent = interimTranscript;
         }
-        finalTranscript = '';
+
+        // THE CORE FIX: Process the final transcript only if it's new
+        if (finalTranscript.trim() && finalTranscript !== lastProcessedTranscript) {
+            // It's a new, complete utterance. Add it.
+            parseAndAddItem(finalTranscript);
+            statusEl.textContent = `Added: ${finalTranscript}`;
+            // IMPORTANT: Remember this transcript so we don't add it again.
+            lastProcessedTranscript = finalTranscript;
+        }
     };
 
-    // Fires when the service actually stops. THIS IS THE KEY.
+    // This event handles auto-restarting on mobile and UI updates.
     recognition.onend = () => {
-        // If the service stops, but the user's INTENT is still to listen,
-        // it means the browser stopped it automatically. We restart it.
         if (isListening) {
-            recognition.start(); // Auto-restart
+            // If the browser stopped it but the user still wants to listen, restart.
+            recognition.start();
         } else {
-            // If the user's intent was to stop, we update the UI.
+            // If the user deliberately stopped it, update the UI.
             startBtn.textContent = '🎤 பேசத் தொடங்கு (Start Listening)';
             startBtn.classList.remove('listening');
             statusEl.textContent = 'Press the button to start continuous listening...';
         }
     };
 
-    // Fires on error.
     recognition.onerror = (event) => {
-        if (event.error !== 'no-speech') { // Ignore "no-speech" errors which are common
-             statusEl.textContent = 'Error: ' + event.error;
+        if (event.error !== 'no-speech') {
+            statusEl.textContent = 'Error: ' + event.error;
         }
-        // Ensure we stop the loop on a critical error.
+        // To be safe, stop the listening loop on error.
         isListening = false;
     };
-    
-    // --- END: NEW HYBRID EVENT HANDLERS ---
-    
+
+    // --- END: THE DEFINITIVE SPEECH RECOGNITION LOGIC ---
+
     // --- Other Listeners and Core Functions (Unchanged) ---
     manualForm.addEventListener('submit', (e) => { e.preventDefault(); const itemName = document.getElementById('manualItemName').value.trim(); const quantity = document.getElementById('manualItemQty').value; const unit = manualItemUnitEl.value; if (itemName) { const newItem = { name: itemName, quantity: `${quantity} ${unit}`, price: 0, total: 0 }; groceryItems.push(newItem); renderList(); manualForm.reset(); manualItemUnitEl.value = 'piece'; } });
     printBtn.addEventListener('click', () => { if (groceryItems.length === 0) { alert("The grocery list is empty. Please add items before printing."); return; } const logoSVG = document.querySelector('.brand-logo').outerHTML; document.getElementById('receipt-logo-container').innerHTML = logoSVG; const receiptHeader = document.getElementById('receipt-header'); receiptHeader.innerHTML = `<h2>${shopNameEl.value || 'Your Shop'}</h2><p>${shopAddressEl.value || 'Your Address'}</p><p>${shopPhoneEl.value || 'Your Phone'}</p><p>Date: ${new Date().toLocaleDateString('en-IN')} | Receipt No: ${receiptNumberEl.value}</p><hr>`; const receiptTable = document.getElementById('receipt-table'); receiptTable.innerHTML = `<thead><tr><th>S.No.</th><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${groceryItems.map((item, index) => `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td></tr>`).join('')}</tbody>`; document.getElementById('receipt-total').innerHTML = grandTotalEl.innerHTML; window.print(); setTimeout(() => { if (confirm("Do you want to clear the list for a new receipt?")) { groceryItems = []; receiptNumberEl.value = generateReceiptNumber(); renderList(); } }, 1000); });
