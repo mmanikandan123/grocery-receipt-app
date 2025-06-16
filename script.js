@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'ta-IN';
-    recognition.continuous = true;
+    recognition.continuous = true; // Important for speaking multiple items
     recognition.interimResults = true;
 
     // DOM Elements
@@ -27,11 +27,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let groceryItems = [];
     let isListening = false;
-    let finalTranscript = '';
-    let speechDebounceTimer = null;
+    let finalTranscript = ''; // This will store the final sentence of an utterance
 
-    // --- Event Listeners ---
+    // --- START: NEW, MORE RELIABLE SPEECH EVENT HANDLERS ---
 
+    // 1. This event fires as words are being recognized.
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+        // Loop through all results. The last one is the most current.
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            // If the result is final, we capture the full sentence.
+            if (event.results[i].isFinal) {
+                finalTranscript = event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
+        }
+        // Provide live feedback to the user as they speak.
+        statusEl.textContent = interimTranscript || (finalTranscript + '...') || 'Listening...';
+    };
+
+    // 2. This event fires when the user stops speaking. THIS IS THE KEY FIX.
+    recognition.onspeechend = () => {
+        // Now that the user has paused, process the last complete sentence we captured.
+        if (finalTranscript.trim()) {
+            statusEl.textContent = `சேர்க்கப்பட்டது (Added): ${finalTranscript}`;
+            parseAndAddItem(finalTranscript);
+        }
+        // Clear the transcript to be ready for the next item the user speaks.
+        finalTranscript = '';
+    };
+    
+    // 3. This event fires when the recognition service starts.
+    recognition.onstart = () => {
+        isListening = true;
+        startBtn.textContent = '🛑 நிறுத்த (Stop Listening)';
+        startBtn.classList.add('listening');
+        statusEl.textContent = 'கேட்கிறேன்... (Listening...)';
+    };
+
+    // 4. This event fires when the service is fully stopped (e.g., by clicking the button).
+    recognition.onend = () => {
+        isListening = false;
+        startBtn.textContent = '🎤 பேசத் தொடங்கு (Start Listening)';
+        startBtn.classList.remove('listening');
+        statusEl.textContent = 'Press the button to start continuous listening...';
+    };
+
+    // 5. Handles any errors.
+    recognition.onerror = (event) => {
+        statusEl.textContent = 'Error or timed out: ' + event.error + '. Press button to try again.';
+        isListening = false;
+    };
+
+    // --- END: NEW, MORE RELIABLE SPEECH EVENT HANDLERS ---
+    
+    
+    // --- Event Listeners (Button Clicks, etc.) ---
     startBtn.addEventListener('click', () => {
         if (isListening) {
             recognition.stop();
@@ -40,93 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    recognition.onresult = (event) => {
-        let interimTranscript = '';
-        let latestFinalTranscript = '';
+    manualForm.addEventListener('submit', (e) => { e.preventDefault(); const itemName = document.getElementById('manualItemName').value.trim(); const quantity = document.getElementById('manualItemQty').value; const unit = manualItemUnitEl.value; if (itemName) { const newItem = { name: itemName, quantity: `${quantity} ${unit}`, price: 0, total: 0 }; groceryItems.push(newItem); renderList(); manualForm.reset(); manualItemUnitEl.value = 'piece'; } });
+    printBtn.addEventListener('click', () => { if (groceryItems.length === 0) { alert("The grocery list is empty. Please add items before printing."); return; } const logoSVG = document.querySelector('.brand-logo').outerHTML; document.getElementById('receipt-logo-container').innerHTML = logoSVG; const receiptHeader = document.getElementById('receipt-header'); receiptHeader.innerHTML = `<h2>${shopNameEl.value || 'Your Shop'}</h2><p>${shopAddressEl.value || 'Your Address'}</p><p>${shopPhoneEl.value || 'Your Phone'}</p><p>Date: ${new Date().toLocaleDateString('en-IN')} | Receipt No: ${receiptNumberEl.value}</p><hr>`; const receiptTable = document.getElementById('receipt-table'); receiptTable.innerHTML = `<thead><tr><th>S.No.</th><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${groceryItems.map((item, index) => `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td></tr>`).join('')}</tbody>`; document.getElementById('receipt-total').innerHTML = grandTotalEl.innerHTML; window.print(); setTimeout(() => { if (confirm("Do you want to clear the list for a new receipt?")) { groceryItems = []; receiptNumberEl.value = generateReceiptNumber(); renderList(); } }, 1000); });
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                latestFinalTranscript += event.results[i][0].transcript;
-            } else {
-                interimTranscript += event.results[i][0].transcript;
-            }
-        }
-
-        statusEl.textContent = interimTranscript || '...';
-
-        if (latestFinalTranscript) {
-            finalTranscript = latestFinalTranscript;
-
-            clearTimeout(speechDebounceTimer);
-            speechDebounceTimer = setTimeout(() => {
-                if (finalTranscript.trim()) {
-                    statusEl.textContent = `சேர்க்கப்பட்டது (Added): ${finalTranscript}.`;
-                    parseAndAddItem(finalTranscript);
-                    finalTranscript = '';
-                }
-            }, 750);
-        }
-    };
-
-    recognition.onstart = () => {
-        isListening = true;
-        startBtn.textContent = '🛑 நிறுத்த (Stop Listening)';
-        startBtn.classList.add('listening');
-        statusEl.textContent = 'கேட்கிறேன்... (Listening...)';
-    };
-
-    recognition.onend = () => {
-        isListening = false;
-        startBtn.textContent = '🎤 பேசத் தொடங்கு (Start Listening)';
-        startBtn.classList.remove('listening');
-        statusEl.textContent = 'Press the button to start continuous listening...';
-        clearTimeout(speechDebounceTimer);
-        finalTranscript = '';
-    };
-
-    recognition.onerror = (event) => {
-        statusEl.textContent = 'Error occurred in recognition: ' + event.error;
-        isListening = false;
-    };
-
-    manualForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const itemName = document.getElementById('manualItemName').value.trim();
-        const quantity = document.getElementById('manualItemQty').value;
-        const unit = manualItemUnitEl.value;
-        if (itemName) {
-            const newItem = { name: itemName, quantity: `${quantity} ${unit}`, price: 0, total: 0 };
-            groceryItems.push(newItem);
-            renderList();
-            manualForm.reset();
-            manualItemUnitEl.value = 'piece';
-        }
-    });
-
-    printBtn.addEventListener('click', () => {
-        if (groceryItems.length === 0) {
-            alert("The grocery list is empty. Please add items before printing.");
-            return;
-        }
-        const logoSVG = document.querySelector('.brand-logo').outerHTML;
-        document.getElementById('receipt-logo-container').innerHTML = logoSVG;
-        const receiptHeader = document.getElementById('receipt-header');
-        receiptHeader.innerHTML = `<h2>${shopNameEl.value || 'Your Shop'}</h2><p>${shopAddressEl.value || 'Your Address'}</p><p>${shopPhoneEl.value || 'Your Phone'}</p><p>Date: ${new Date().toLocaleDateString('en-IN')} | Receipt No: ${receiptNumberEl.value}</p><hr>`;
-        const receiptTable = document.getElementById('receipt-table');
-        receiptTable.innerHTML = `<thead><tr><th>S.No.</th><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${groceryItems.map((item, index) => `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td></tr>`).join('')}</tbody>`;
-        document.getElementById('receipt-total').innerHTML = grandTotalEl.innerHTML;
-        window.print();
-        setTimeout(() => {
-            if (confirm("Do you want to clear the list for a new receipt?")) {
-                groceryItems = [];
-                receiptNumberEl.value = generateReceiptNumber();
-                renderList();
-            }
-        }, 1000);
-    });
-
-    // --- Core Functions ---
-    
+    // --- Core Functions (Unchanged) ---
     function generateReceiptNumber() { const now = new Date(); const year = now.getFullYear(); const month = (now.getMonth() + 1).toString().padStart(2, '0'); const day = now.getDate().toString().padStart(2, '0'); const hours = now.getHours().toString().padStart(2, '0'); const minutes = now.getMinutes().toString().padStart(2, '0'); return `${year}${month}${day}-${hours}${minutes}`; }
     function saveState() { const state = { items: groceryItems, shopDetails: { name: shopNameEl.value, address: shopAddressEl.value, phone: shopPhoneEl.value, receiptNo: receiptNumberEl.value, } }; localStorage.setItem('groceryReceiptState', JSON.stringify(state)); }
     function loadState() { const savedState = localStorage.getItem('groceryReceiptState'); if (savedState) { const state = JSON.parse(savedState); groceryItems = state.items || []; if (state.shopDetails) { shopNameEl.value = state.shopDetails.name || ''; shopAddressEl.value = state.shopDetails.address || ''; shopPhoneEl.value = state.shopDetails.phone || ''; receiptNumberEl.value = state.shopDetails.receiptNo || generateReceiptNumber(); } renderList(); } else { receiptNumberEl.value = generateReceiptNumber(); } }
