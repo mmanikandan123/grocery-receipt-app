@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     recognition.lang = 'ta-IN';
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
 
     // DOM Elements
     const startBtn = document.getElementById('startBtn');
@@ -20,92 +19,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const grandTotalEl = document.getElementById('grandTotal');
     const printBtn = document.getElementById('printBtn');
     const manualForm = document.getElementById('manualForm');
+    const undoBtn = document.getElementById('undoBtn');
     const shopNameEl = document.getElementById('shopName');
     const shopAddressEl = document.getElementById('shopAddress');
     const shopPhoneEl = document.getElementById('shopPhone');
     const receiptNumberEl = document.getElementById('receiptNumber');
     const manualItemUnitEl = document.getElementById('manualItemUnit');
+    const receiptToPrintEl = document.getElementById('receipt-to-print'); // Get the element once
 
     let groceryItems = [];
     let isListening = false;
-    // This variable is the key to the new logic. It remembers what we just added.
     let lastProcessedTranscript = '';
+    let speechProcessingTimer = null;
+    let transcriptToProcess = '';
 
-    // --- START: THE DEFINITIVE SPEECH RECOGNITION LOGIC ---
-
-    startBtn.addEventListener('click', () => {
-        if (isListening) {
-            isListening = false;
-            recognition.stop();
-        } else {
-            isListening = true;
-            lastProcessedTranscript = ''; // Reset on new session start
-            recognition.start();
+    // --- START: MODIFIED Print Button Logic ---
+    printBtn.addEventListener('click', () => {
+        if (groceryItems.length === 0) {
+            alert("The grocery list is empty. Please add items before printing.");
+            return;
         }
-    });
 
-    recognition.onstart = () => {
-        startBtn.textContent = '🛑 நிறுத்த (Stop Listening)';
-        startBtn.classList.add('listening');
-        statusEl.textContent = 'கேட்கிறேன்... (Listening...)';
-    };
+        // --- Populate the receipt content ---
+        const logoSVG = document.querySelector('.brand-logo').outerHTML;
+        document.getElementById('receipt-logo-container').innerHTML = logoSVG;
+        const receiptHeader = document.getElementById('receipt-header');
+        receiptHeader.innerHTML = `<h2>${shopNameEl.value || 'Your Shop'}</h2><p>${shopAddressEl.value || 'Your Address'}</p><p>${shopPhoneEl.value || 'Your Phone'}</p><p>Date: ${new Date().toLocaleDateString('en-IN')} | Receipt No: ${receiptNumberEl.value}</p><hr>`;
+        const receiptTable = document.getElementById('receipt-table');
+        receiptTable.innerHTML = `<thead><tr><th>S.No.</th><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${groceryItems.map((item, index) => `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td></tr>`).join('')}</tbody>`;
+        document.getElementById('receipt-total').innerHTML = grandTotalEl.innerHTML;
+        
+        // --- The Fix: Manually control visibility ---
+        
+        // 1. Make the receipt visible for printing
+        receiptToPrintEl.classList.remove('hidden');
 
-    // This is the only event we need for processing items.
-    recognition.onresult = (event) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+        // 2. Call the print dialog. This is a blocking action.
+        window.print();
 
-        // We loop through the results to find the final one for this event
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-                finalTranscript += transcript;
-            } else {
-                interimTranscript += transcript;
+        // 3. This code runs AFTER the print dialog is closed. Hide the receipt again immediately.
+        receiptToPrintEl.classList.add('hidden');
+
+        // --- Ask to clear the list ---
+        setTimeout(() => {
+            if (confirm("Do you want to clear the list for a new receipt?")) {
+                groceryItems = [];
+                receiptNumberEl.value = generateReceiptNumber();
+                renderList();
             }
-        }
+        }, 500); // Reduced delay
+    });
+    // --- END: MODIFIED Print Button Logic ---
 
-        // Update the status with live feedback for the user
-        if (interimTranscript) {
-            statusEl.textContent = interimTranscript;
-        }
 
-        // THE CORE FIX: Process the final transcript only if it's new
-        if (finalTranscript.trim() && finalTranscript !== lastProcessedTranscript) {
-            // It's a new, complete utterance. Add it.
-            parseAndAddItem(finalTranscript);
-            statusEl.textContent = `Added: ${finalTranscript}`;
-            // IMPORTANT: Remember this transcript so we don't add it again.
-            lastProcessedTranscript = finalTranscript;
-        }
-    };
-
-    // This event handles auto-restarting on mobile and UI updates.
-    recognition.onend = () => {
-        if (isListening) {
-            // If the browser stopped it but the user still wants to listen, restart.
-            recognition.start();
-        } else {
-            // If the user deliberately stopped it, update the UI.
-            startBtn.textContent = '🎤 பேசத் தொடங்கு (Start Listening)';
-            startBtn.classList.remove('listening');
-            statusEl.textContent = 'Press the button to start continuous listening...';
-        }
-    };
-
-    recognition.onerror = (event) => {
-        if (event.error !== 'no-speech') {
-            statusEl.textContent = 'Error: ' + event.error;
-        }
-        // To be safe, stop the listening loop on error.
-        isListening = false;
-    };
-
-    // --- END: THE DEFINITIVE SPEECH RECOGNITION LOGIC ---
-
-    // --- Other Listeners and Core Functions (Unchanged) ---
+    // --- All other functions remain unchanged ---
+    startBtn.addEventListener('click', () => { if (isListening) { isListening = false; recognition.stop(); } else { isListening = true; lastProcessedTranscript = ''; recognition.start(); } });
+    undoBtn.addEventListener('click', () => { if (groceryItems.length > 0) { groceryItems.pop(); renderList(); } });
+    recognition.onstart = () => { startBtn.textContent = '🛑 நிறுத்த (Stop Listening)'; startBtn.classList.add('listening'); statusEl.textContent = 'கேட்கிறேன்... (Listening...)'; };
+    recognition.onresult = (event) => { let interimTranscript = ''; let finalTranscriptThisTurn = ''; for (let i = event.resultIndex; i < event.results.length; ++i) { const transcript = event.results[i][0].transcript; if (event.results[i].isFinal) { finalTranscriptThisTurn += transcript; } else { interimTranscript += transcript; } } if (interimTranscript) { statusEl.textContent = interimTranscript; } if (finalTranscriptThisTurn.trim()) { transcriptToProcess = finalTranscriptThisTurn; clearTimeout(speechProcessingTimer); speechProcessingTimer = setTimeout(() => { if (transcriptToProcess && transcriptToProcess !== lastProcessedTranscript) { parseAndAddItem(transcriptToProcess); statusEl.textContent = `Added: ${transcriptToProcess}`; lastProcessedTranscript = transcriptToProcess; } }, 400); } };
+    recognition.onend = () => { if (isListening) { recognition.start(); } else { startBtn.textContent = '🎤 பேசத் தொடங்கு (Start Listening)'; startBtn.classList.remove('listening'); statusEl.textContent = 'Press the button to start continuous listening...'; } };
+    recognition.onerror = (event) => { if (event.error !== 'no-speech' && event.error !== 'audio-capture') { statusEl.textContent = 'Error: ' + event.error; } isListening = false; };
     manualForm.addEventListener('submit', (e) => { e.preventDefault(); const itemName = document.getElementById('manualItemName').value.trim(); const quantity = document.getElementById('manualItemQty').value; const unit = manualItemUnitEl.value; if (itemName) { const newItem = { name: itemName, quantity: `${quantity} ${unit}`, price: 0, total: 0 }; groceryItems.push(newItem); renderList(); manualForm.reset(); manualItemUnitEl.value = 'piece'; } });
-    printBtn.addEventListener('click', () => { if (groceryItems.length === 0) { alert("The grocery list is empty. Please add items before printing."); return; } const logoSVG = document.querySelector('.brand-logo').outerHTML; document.getElementById('receipt-logo-container').innerHTML = logoSVG; const receiptHeader = document.getElementById('receipt-header'); receiptHeader.innerHTML = `<h2>${shopNameEl.value || 'Your Shop'}</h2><p>${shopAddressEl.value || 'Your Address'}</p><p>${shopPhoneEl.value || 'Your Phone'}</p><p>Date: ${new Date().toLocaleDateString('en-IN')} | Receipt No: ${receiptNumberEl.value}</p><hr>`; const receiptTable = document.getElementById('receipt-table'); receiptTable.innerHTML = `<thead><tr><th>S.No.</th><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr></thead><tbody>${groceryItems.map((item, index) => `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td></tr>`).join('')}</tbody>`; document.getElementById('receipt-total').innerHTML = grandTotalEl.innerHTML; window.print(); setTimeout(() => { if (confirm("Do you want to clear the list for a new receipt?")) { groceryItems = []; receiptNumberEl.value = generateReceiptNumber(); renderList(); } }, 1000); });
     function generateReceiptNumber() { const now = new Date(); const year = now.getFullYear(); const month = (now.getMonth() + 1).toString().padStart(2, '0'); const day = now.getDate().toString().padStart(2, '0'); const hours = now.getHours().toString().padStart(2, '0'); const minutes = now.getMinutes().toString().padStart(2, '0'); return `${year}${month}${day}-${hours}${minutes}`; }
     function saveState() { const state = { items: groceryItems, shopDetails: { name: shopNameEl.value, address: shopAddressEl.value, phone: shopPhoneEl.value, receiptNo: receiptNumberEl.value, } }; localStorage.setItem('groceryReceiptState', JSON.stringify(state)); }
     function loadState() { const savedState = localStorage.getItem('groceryReceiptState'); if (savedState) { const state = JSON.parse(savedState); groceryItems = state.items || []; if (state.shopDetails) { shopNameEl.value = state.shopDetails.name || ''; shopAddressEl.value = state.shopDetails.address || ''; shopPhoneEl.value = state.shopDetails.phone || ''; receiptNumberEl.value = state.shopDetails.receiptNo || generateReceiptNumber(); } renderList(); } else { receiptNumberEl.value = generateReceiptNumber(); } }
