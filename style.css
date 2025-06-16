@@ -10,63 +10,33 @@ body {
     background-color: #f4f4f9;
 }
 
+/* --- START: NEW RULE FOR HIDING ELEMENTS --- */
+.hidden {
+    display: none;
+}
+/* --- END: NEW RULE --- */
+
 /* App Bar Styles */
-.app-bar {
-    background-color: #0056b3;
-    color: white;
-    padding: 10px 25px; /* Adjusted padding slightly */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    width: 100%;
-    box-sizing: border-box;
-}
-/* --- START: NEW App Bar Content and Logo Styles --- */
-.app-bar-content {
-    display: flex;
-    align-items: center;
-    gap: 15px; /* Space between logo and title */
-}
-.brand-logo {
-    width: 32px;
-    height: 32px;
-}
-/* --- END: NEW App Bar Content and Logo Styles --- */
-.app-bar h1 {
-    margin: 0;
-    font-size: 1.3em;
-    text-align: left;
-    color: white;
-}
+.app-bar { background-color: #0056b3; color: white; padding: 10px 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); width: 100%; box-sizing: border-box; }
+.app-bar-content { display: flex; align-items: center; gap: 15px; }
+.brand-logo { width: 32px; height: 32px; }
+.app-bar h1 { margin: 0; font-size: 1.3em; text-align: left; color: white; }
 
-.container {
-    background-color: rgba(255, 255, 255, 0.97);
-    padding: 25px;
-    margin: 15px auto;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.15);
-    width: 100%;
-    max-width: 800px;
-    box-sizing: border-box;
-}
-
-h2, h3 {
-    color: #0056b3;
-    text-align: center;
-}
+.container { background-color: rgba(255, 255, 255, 0.97); padding: 25px; margin: 15px auto; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.15); width: 100%; max-width: 800px; box-sizing: border-box; }
+h2, h3 { color: #0056b3; text-align: center; }
 
 /* Input and Button Styles */
-input[type="text"], input[type="number"], select {
-    width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background-color: white; font-size: 16px;
-}
+input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background-color: white; font-size: 16px; }
 input[readonly] { background-color: #e9ecef; cursor: not-allowed; }
 
-button {
-    background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; width: 100%; margin-top: 10px;
-}
+button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; width: 100%; margin-top: 10px; }
 button:hover { background-color: #0056b3; }
 #startBtn { background-color: #28a745; }
 #startBtn:hover { background-color: #218838; }
 #startBtn.listening { background-color: #dc3545; }
 #startBtn.listening:hover { background-color: #c82333; }
+.secondary-btn { background-color: #6c757d; }
+.secondary-btn:hover { background-color: #5a6268; }
 
 /* Layout Sections */
 .controls { text-align: center; margin-bottom: 20px; }
@@ -94,7 +64,7 @@ td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
 @media screen and (max-width: 768px) {
     body { padding: 0; }
     .app-bar { padding: 10px 15px; }
-    .app-bar-content { justify-content: center; } /* Center logo and title container */
+    .app-bar-content { justify-content: center; }
     .app-bar h1 { font-size: 1.2em; }
     .container { padding: 15px; margin: 10px; width: auto; }
     .shop-details-grid { grid-template-columns: 1fr; }
@@ -102,7 +72,6 @@ td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
     table thead { display: none; }
     table, tbody, tr { display: block; width: 100%; }
     tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-sizing: border-box; }
-    
     td { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px; border: none; border-bottom: 1px dotted #ccc; }
     td:last-child { border-bottom: none; }
     td::before { content: attr(data-label); font-weight: bold; text-align: left; flex-basis: 50%; padding-right: 10px; }
@@ -118,23 +87,16 @@ td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
 }
 
 /* Print Styles */
-#receipt-to-print { display: none; }
 @media print {
-    body > .app-bar, body > .container { display: none; }
-    #receipt-to-print { display: block; font-family: 'Courier New', Courier, monospace; width: 100%; }
-    
-    /* --- START: NEW Print Logo Styles --- */
-    #receipt-logo-container {
-        text-align: center;
-        margin-bottom: 10px;
+    body > .app-bar, body > .container {
+        display: none;
     }
-    #receipt-logo-container svg {
-        width: 50px;
-        height: 50px;
-        fill: #000; /* Ensure logo is black for printing */
+    /* This rule is kept as a fallback, but the JS now handles visibility */
+    #receipt-to-print {
+        display: block;
     }
-    /* --- END: NEW Print Logo Styles --- */
-
+    #receipt-logo-container { text-align: center; margin-bottom: 10px; }
+    #receipt-logo-container svg { width: 50px; height: 50px; fill: #000; }
     #receipt-to-print h2, #receipt-to-print p { text-align: center; margin: 4px 0; }
     #receipt-to-print table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     #receipt-to-print th, #receipt-to-print td { border-bottom: 1px dotted #333; padding: 5px; text-align: left; }
