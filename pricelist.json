@@ -1,0 +1,33 @@
+[
+  { "name": "sugar", "price": 45, "baseUnit": "kg" },
+  { "name": "salt", "price": 20, "baseUnit": "kg" },
+  { "name": "rice", "price": 55, "baseUnit": "kg" },
+  { "name": "atta", "price": 40, "baseUnit": "kg" },
+  { "name": "turmeric", "price": 25, "baseUnit": "100g" },
+  { "name": "turmeric powder", "price": 25, "baseUnit": "100g" },
+  { "name": "chilli powder", "price": 30, "baseUnit": "100g" },
+  { "name": "sunflower oil", "price": 110, "baseUnit": "liter" },
+  { "name": "milk", "price": 60, "baseUnit": "liter" },
+  { "name": "egg", "price": 6, "baseUnit": "piece" },
+  { "name": "biscuit", "price": 10, "baseUnit": "packet" },
+  {
+    "name": "சர்க்கரை",
+    "mapsTo": "sugar"
+  },
+  {
+    "name": "உப்பு",
+    "mapsTo": "salt"
+  },
+  {
+    "name": "அரிசி",
+    "mapsTo": "rice"
+  },
+  {
+    "name": "மஞ்சள் தூள்",
+    "mapsTo": "turmeric powder"
+  },
+  {
+    "name": "മുട്ട",
+    "mapsTo": "egg"
+  }
+]

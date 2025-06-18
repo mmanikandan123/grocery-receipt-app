@@ -1,26 +1,17 @@
 /* General Body and Font Styles */
-body {
-    font-family: 'Noto Sans Tamil', sans-serif;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    -webkit-font-smoothing: antialiased;
-    background-image: url('https://www.transparenttextures.com/patterns/food.png');
-    background-repeat: repeat;
-    background-color: #f4f4f9;
-}
-
-/* --- START: NEW RULE FOR HIDING ELEMENTS --- */
-.hidden {
-    display: none;
-}
-/* --- END: NEW RULE --- */
+body { font-family: 'Noto Sans', sans-serif; color: #333; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; background-image: url('https://www.transparenttextures.com/patterns/food.png'); background-repeat: repeat; background-color: #f4f4f9; }
+.hidden { display: none; }
 
 /* App Bar Styles */
-.app-bar { background-color: #0056b3; color: white; padding: 10px 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); width: 100%; box-sizing: border-box; }
+.app-bar { background-color: #0056b3; color: white; padding: 10px 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); width: 100%; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
 .app-bar-content { display: flex; align-items: center; gap: 15px; }
-.brand-logo { width: 32px; height: 32px; }
 .app-bar h1 { margin: 0; font-size: 1.3em; text-align: left; color: white; }
+
+/* --- START: UPDATED ICON STYLES --- */
+.brand-logo { font-size: 32px; vertical-align: middle; }
+.language-switcher { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.language-switcher .material-symbols-outlined { font-size: 24px; vertical-align: middle; }
+#languageSelector { background-color: #004a99; color: white; border: 1px solid #eee; border-radius: 4px; padding: 5px 8px; font-size: 14px; }
 
 .container { background-color: rgba(255, 255, 255, 0.97); padding: 25px; margin: 15px auto; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.15); width: 100%; max-width: 800px; box-sizing: border-box; }
 h2, h3 { color: #0056b3; text-align: center; }
@@ -29,7 +20,9 @@ h2, h3 { color: #0056b3; text-align: center; }
 input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background-color: white; font-size: 16px; }
 input[readonly] { background-color: #e9ecef; cursor: not-allowed; }
 
-button { background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; width: 100%; margin-top: 10px; }
+button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background-color: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; width: 100%; margin-top: 10px; }
+button .material-symbols-outlined { font-size: 1.2em; vertical-align: middle; }
+
 button:hover { background-color: #0056b3; }
 #startBtn { background-color: #28a745; }
 #startBtn:hover { background-color: #218838; }
@@ -37,12 +30,17 @@ button:hover { background-color: #0056b3; }
 #startBtn.listening:hover { background-color: #c82333; }
 .secondary-btn { background-color: #6c757d; }
 .secondary-btn:hover { background-color: #5a6268; }
+/* --- END: UPDATED ICON STYLES --- */
 
 /* Layout Sections */
-.controls { text-align: center; margin-bottom: 20px; }
+.controls, .shop-details { text-align: center; margin-bottom: 20px; }
 #status { margin-top: 10px; font-style: italic; color: #666; min-height: 1.2em; }
 .shop-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .shop-details-grid input:nth-child(1), .shop-details-grid input:nth-child(2) { grid-column: 1 / -1; }
+.gst-toggle { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; }
+.gst-toggle input { width: auto; margin: 0; }
+.gst-toggle label { margin: 0; font-weight: bold; }
+
 .manual-entry { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; }
 .manual-entry h3 { margin-top: 0; }
 .manual-inputs { display: flex; gap: 10px; }
@@ -51,21 +49,23 @@ button:hover { background-color: #0056b3; }
 .manual-entry button { background-color: #17a2b8; }
 .manual-entry button:hover { background-color: #138496; }
 
-/* Table Styles */
+/* Table and Totals Styles */
 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
 th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
 th { background-color: #f2f2f2; }
 th:first-child, td:first-child { width: 50px; text-align: center; }
 td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
-.delete-btn { background-color: #dc3545; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 4px; width: auto; }
-#grandTotal { text-align: right; margin-top: 20px; font-size: 1.2em; }
+.delete-btn { background-color: #dc3545; color: white; padding: 5px; border: none; cursor: pointer; border-radius: 4px; width: auto; display: inline-flex; align-items: center; justify-content: center; }
+.delete-btn .material-symbols-outlined { font-size: 20px; }
+
+.totals-breakdown { text-align: right; margin-top: 20px; padding-right: 10px; }
+.totals-breakdown h3 { margin: 5px 0; text-align: right; }
+#grandTotal { font-size: 1.2em; font-weight: bold; }
 
 /* Responsive Styles */
 @media screen and (max-width: 768px) {
-    body { padding: 0; }
-    .app-bar { padding: 10px 15px; }
-    .app-bar-content { justify-content: center; }
-    .app-bar h1 { font-size: 1.2em; }
+    .app-bar { flex-direction: column; align-items: center; gap: 10px; padding-bottom: 15px; }
+    .language-switcher { margin-left: 0; }
     .container { padding: 15px; margin: 10px; width: auto; }
     .shop-details-grid { grid-template-columns: 1fr; }
     .shop-details-grid input { grid-column: auto; }
@@ -74,32 +74,25 @@ td input[type="text"] { padding: 5px; width: 100%; box-sizing: border-box; }
     tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-sizing: border-box; }
     td { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px; border: none; border-bottom: 1px dotted #ccc; }
     td:last-child { border-bottom: none; }
-    td::before { content: attr(data-label); font-weight: bold; text-align: left; flex-basis: 50%; padding-right: 10px; }
-    td:nth-of-type(1)::before { content: "S.No."; }
-    td:nth-of-type(2)::before { content: "பொருள் (Item)"; }
-    td:nth-of-type(3)::before { content: "அளவு (Quantity)"; }
-    td:nth-of-type(4)::before { content: "விலை (Price ₹)"; }
-    td:nth-of-type(5)::before { content: "மொத்தம் (Total ₹)"; }
-    td:nth-of-type(6)::before { content: "நீக்கு (Delete)"; }
+    td::before { content: attr(data-label-mobile); font-weight: bold; text-align: left; flex-basis: 50%; padding-right: 10px; }
     td > *, td .item-total { text-align: right; flex-grow: 1; }
-    .delete-btn { width: 60px; flex-grow: 0; }
-    #grandTotal { text-align: center; font-size: 1.3em; }
+    .totals-breakdown { text-align: center; padding: 0; }
+    .totals-breakdown h3 { text-align: center; }
 }
 
 /* Print Styles */
 @media print {
-    body > .app-bar, body > .container {
-        display: none;
-    }
-    /* This rule is kept as a fallback, but the JS now handles visibility */
-    #receipt-to-print {
-        display: block;
-    }
+    body > .app-bar, body > .container { display: none; }
+    #receipt-to-print { display: block; }
     #receipt-logo-container { text-align: center; margin-bottom: 10px; }
-    #receipt-logo-container svg { width: 50px; height: 50px; fill: #000; }
+    /* --- START: STYLE FOR PRINTED MATERIAL SYMBOL --- */
+    #receipt-logo-container .material-symbols-outlined { font-size: 50px; color: #000; }
+    /* --- END: STYLE FOR PRINTED MATERIAL SYMBOL --- */
     #receipt-to-print h2, #receipt-to-print p { text-align: center; margin: 4px 0; }
     #receipt-to-print table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     #receipt-to-print th, #receipt-to-print td { border-bottom: 1px dotted #333; padding: 5px; text-align: left; }
     #receipt-to-print th:last-child, #receipt-to-print td:last-child, #receipt-to-print th:nth-last-child(2), #receipt-to-print td:nth-last-child(2) { text-align: right; }
-    #receipt-to-print #receipt-total { text-align: right; margin-top: 15px; font-size: 1.1em; font-weight: bold; }
+    #receipt-totals-breakdown { text-align: right; margin-top: 15px; font-size: 1.1em; }
+    #receipt-totals-breakdown h3 { margin: 4px 0; font-weight: normal; }
+    #receipt-totals-breakdown h3:last-child { font-weight: bold; }
 }
